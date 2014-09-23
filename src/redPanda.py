@@ -30,6 +30,9 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 	months_to_num = { 'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05',
         'jun': '06', 'jul': '07', 'aug' : '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12' }
 
+
+	ignore_enum_case = True ### going to lower case all the variables I add to an enumerated list so that True and true are the same..
+
 	fields_with_dates = [ field for field in project_dd_by_name.keys() if project_dd_by_name[field]['text_validation_type_or_show_slider_number'] == u'date_mdy']
     #print fields_with_dates,'are date fields..'
 	fields_with_enumerations = [ field for field in project_dd_by_name.keys() if ( project_dd_by_name[field]['field_type'] == u'dropdown' or project_dd_by_name[field]['field_type'] == 'radio' )]
@@ -57,7 +60,12 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 		enum_list = enum_values.split(' | ')
 		enum_dict = {}
 		enum_dict = dict([ x.split(', ') for x in enum_list])
-		enum_rvs_dict = {v:k for k,v in enum_dict.iteritems()}
+		if ignore_enum_case:
+			enum_rvs_dict = {v.lower():k for k,v in enum_dict.iteritems()}
+		else:
+			enum_rvs_dict = {v:k for k,v in enum_dict.iteritems()}
+#		enum_rvs_dict = {v:k for k,v in enum_dict.iteritems()}
+
 		combined_enum_map[field] = enum_rvs_dict
         #print enum_dict
 
@@ -88,6 +96,8 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 			elif  valid_date.match(value_to_fix):
                 #print "Date is already in the correct format"
 				pass
+			elif not value_to_fix:
+				pass
 			else:
 				value_to_fix = value_to_fix.lower()
                 #print "still need to fix",value_to_fix
@@ -101,12 +111,14 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 				record_dict[field] = value_to_fix
                 
 		elif field in fields_with_enumerations:
-			value_to_fix = record_dict[field].lower()
+			
+			value_to_fix = record_dict[field]
+			if value_to_fix:
+				value_to_fix = record_dict[field].lower()
             #print "need to fix",value_to_fix,"for",field
 			## ADDING IN LOWER CASE FIX
-			#lc_combined_enum_map = [ x.lower() for x in combined_enum_map[field].keys() ]
-#			if value_to_fix in lc_combined_enum_map:
-			if value_to_fix in combined_enum_map:
+			lc_combined_enum_map = [ x.lower() for x in combined_enum_map[field].keys() ]
+			if value_to_fix in lc_combined_enum_map:
 				enumerated_value = combined_enum_map[field][value_to_fix]
 				record_dict[field] = enumerated_value
 
