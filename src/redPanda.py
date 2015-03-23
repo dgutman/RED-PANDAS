@@ -59,6 +59,7 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 		enum_values = project_dd_by_name[field]['select_choices_or_calculations']
 		enum_list = enum_values.split(' | ')
 		enum_dict = {}
+		#print enum_values,field
 		enum_dict = dict([ x.split(', ') for x in enum_list])
 		if ignore_enum_case:
 			enum_rvs_dict = {v.lower():k for k,v in enum_dict.iteritems()}
@@ -102,14 +103,19 @@ def reformat_pt_record( record_dict, project_dd_by_name):
 				value_to_fix = value_to_fix.lower()
                 #print "still need to fix",value_to_fix
                 ## need to make this into its own function, for now im doing it crudely
-				parts = value_to_fix.split('-', 2)
-                # Explicit is better than implicit
-				parts[2] = '19{}'.format(parts[2])  
-				better_date_string = '-'.join(parts)
-				dt = datetime.strptime(better_date_string, '%d-%b-%Y')
-				value_to_fix = dt.strftime("%Y-%m-%d")
-				record_dict[field] = value_to_fix
-                
+				print value_to_fix	
+				if( '-' in value_to_fix):
+					try:
+						parts = value_to_fix.split('-', 2)
+	    	            # Explicit is better than implicit
+						parts[2] = '19{}'.format(parts[2])  
+						better_date_string = '-'.join(parts)
+						dt = datetime.strptime(better_date_string, '%d-%b-%Y')
+						value_to_fix = dt.strftime("%Y-%m-%d")
+						record_dict[field] = value_to_fix
+					except:
+						print "data wasn't parsed properly"                
+
 		elif field in fields_with_enumerations:
 			
 			value_to_fix = record_dict[field]
